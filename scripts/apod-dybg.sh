@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VERSION: 20180913a
-# Por ARG. Basado en un script de Josh Schreuder (2011)
+# Por boot1110001. Basado en un script de Josh Schreuder (2011)
 
 # ********************************
 # *** OPCIONES
@@ -87,7 +87,7 @@ function check {
 echo "============================="
 echo "== Fondo de pantalla APOD  =="
 echo "============================="
-echo "           BY ARG            "
+echo "       BY boot1110001        "
 echo "============================="
 echo "  Inspirado en un script de  "
 echo "    Josh Schreuder (2011)    "

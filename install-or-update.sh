@@ -1,7 +1,7 @@
 #!/bin/bash
 VERSION="20180912a"
-# (c) inoro [20180912a]
-echo "# (c) inoro [$VERSION]"
+# (c) boot1110001 [20180912a]
+echo "# (c) boot1110001 [$VERSION]"
 # [install-or-update - Install or Update apod-dybg*]
 echo "# [install-or-update - Install or Update apod-dybg*]"
 # *apod-dybg - Astronomy Picture of the Day Dynamic Background

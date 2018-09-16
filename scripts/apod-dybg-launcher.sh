@@ -1,7 +1,7 @@
 #!/bin/bash
 VERSION="20180916a"
-# (c) inoro [20180916a]
-echo "@ (c) inoro [$VERSION]"
+# (c) boot1110001 [20180916a]
+echo "@ (c) boot1110001 [$VERSION]"
 # [apod-dybg-launcher - Launcher of apod-dybg*]
 echo "@ [apod-dybg-launcher - Launcher of apod-dybg*]"
 # *apod-dybg - Astronomy Picture of the Day Dynamic Background
