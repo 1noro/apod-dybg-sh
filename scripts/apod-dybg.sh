@@ -107,7 +107,7 @@ if [ ! -e "$PICTURES_DIR/"${TODAY}"_apod.jpg" ]; then
     # Obtenido el link de la imagen
     PICURL=`/bin/cat /tmp/pic_url`
 
-    echo  "La URL de la imagen es: ${PICURL}"
+    echo  "La URL de la imagen es: ${PICURL}" #<----------------- poner un if para comprobar que es una imagen
 
     echo  "Descargando imagen..."
     wget --quiet $PICURL -O $PICTURES_DIR/${TODAY}_apod.jpg
