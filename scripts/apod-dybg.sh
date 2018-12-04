@@ -19,7 +19,7 @@ DESCRIPTION_DIR="$HOME/.apod-dybg/bg-description"
 #~ $LENGTH=Length
 LENGTH="Lonxitude"
 # Dirección de la imagen por defecto
-DEFAULT_IMG="$HOME/.apod-dybg/bg-default/bg-default-1.jpg"
+DEFAULT_IMG="$HOME/.apod-dybg/bg-default/bg-default-"$(( ( RANDOM % 3 )  + 1 ))".jpg"
 # Dierección de la imagen de icono
 ICON="$HOME/.icons/apod-dybg.png"
 
