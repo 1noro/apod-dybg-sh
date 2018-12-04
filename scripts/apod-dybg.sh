@@ -1,41 +1,53 @@
 #!/bin/bash
+# VERSION: 20181204a
+# By boot1110001. Based on the script of Josh Schreuder (2011)
 
-# VERSION: 20180913a
-# Por boot1110001. Basado en un script de Josh Schreuder (2011)
 
-# ********************************
-# *** OPCIONES
-# ********************************
-# Escriba 'yes' para guardar una descripción (en ~/description.txt) 
-# desde la página de APOD. Cualquier otra opción sera tomada como una 
-# negación.
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# 	OPTIONS & VARIABLES
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# Write 'yes' for save a description (in ~/description.txt) 
+# from the APOD webpage. Any other option will be taken as a denial.
 GET_DESCRIPTION="yes"
-# Escriba la ruta del directorio donde se guardaran las imágenes
-#~ PICTURES_DIR=~/Pictures
+
+# Write the path to the directory where the images will be saved.
+#~ PICTURES_DIR="$HOME/.apod-dybg/bg-picture"
 PICTURES_DIR="$HOME/.apod-dybg/bg-picture"
-# Escriba la ruta del directorio donde se guardará la descripción
+
+# Enter the directory path where the description will be saved.
+#~ DESCRIPTION_DIR="$HOME/.apod-dybg/bg-description"
 DESCRIPTION_DIR="$HOME/.apod-dybg/bg-description"
-# Escriba 'Length' (Longitud) en el idioma de su PC
-#~ $LENGTH=Length
+
+# Enter 'Length' in the language of your PC bash shell.
+#~ LENGTH="Length"
+#~ LENGTH="Longitud"
 LENGTH="Lonxitude"
-# Dirección de la imagen por defecto
+
+# Address of the default image.
+#~ DEFAULT_IMG="$HOME/.apod-dybg/bg-default/bg-default-"$(( ( RANDOM % 3 )  + 1 ))".jpg"
 DEFAULT_IMG="$HOME/.apod-dybg/bg-default/bg-default-"$(( ( RANDOM % 3 )  + 1 ))".jpg"
-# Dierección de la imagen de icono
+
+# Address of the icon image.
+#~ ICON="$HOME/.icons/apod-dybg.png"
 ICON="$HOME/.icons/apod-dybg.png"
 
-# ********************************
-# *** FUNCIONES
-# ********************************
+# Assigning date.
+TODAY=$(date +'%Y%m%d')
+
+
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# 	FUNCTIONS
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 function get_page {
-    echo "Descargando la pagina para encontrar la imagen..."
+    echo "Downloading the page to find the image..."
     wget http://apod.nasa.gov/apod/ --quiet -O /tmp/apod.html
     grep -m 1 jpg /tmp/apod.html | sed -e 's/<//' -e 's/>//' -e 's/.*=//' -e 's/"//g' -e 's/^/http:\/\/apod.nasa.gov\/apod\//' > /tmp/pic_url
 }
 
 function save_description {
     if [ ${GET_DESCRIPTION} == "yes" ]; then
-        echo "Obteniendo la descripcion de la imagen..."
-        # Obtener descripción
+        echo "Getting the description of the image..."
+        # Get description.
         if [ -e $DESCRIPTION_DIR/description.txt ]; then
             rm $DESCRIPTION_DIR/description.txt
         fi
@@ -44,7 +56,7 @@ function save_description {
             get_page
         fi
 
-        echo "Parseando la descripcion..."
+        echo "Parsing the description..."
         sed -n '/<b> Explanation: <\/b>/,/<p> <center>/p' /tmp/apod.html |
         sed -e :a -e 's/<[^>]*>//g;/</N;//ba' |
         grep -Ev 'Explanation:' |
@@ -57,8 +69,8 @@ function save_description {
 }
 
 function clean_up {
-    # Limpiar
-    echo "Limpiando los archivos temporales..."
+    # Clean.
+    echo "Cleaning temporary files..."
     if [ -e "/tmp/pic_url" ]; then
         rm /tmp/pic_url
     fi
@@ -70,92 +82,95 @@ function clean_up {
 }
 
 function check {
-    # Comprobar si se ha descargado una imagen
-    echo "Comprobando si la imagen descargada es correcta..."
+    # Check if the image has been downloaded.
+    echo "Checking if the downloaded image is correct..."
 	if [ ! -f "$PICTURES_DIR/"${TODAY}"_apod.jpg" ]; then
-		echo "La imagen no se ha descargado, reemplazando por la imagen por defecto..."
+		echo "The image has not been downloaded, replacing it with the default image..."
 		gsettings set org.gnome.desktop.background picture-uri "file://$DEFAULT_IMG"
 		notify-send -i "$ICON" "Fallo en la descarga del fondo de pantalla APOD" "La imagen de hoy de la 'Astronomy Picture of the Day' no se ha podido descargar. Asignado el fondo por defecto."
+		#~ notify-send -i "$ICON" "Failure to download the APOD wallpaper" "Today's image of the 'Astronomy Picture of the Day' could not be downloaded. Assigned the background by default."
 	else
-		echo "La imagen se ha descargado correctamente, finalizando..."
+		echo "The image has been downloaded correctly, ending..."
 	fi
 }
 
-# ********************************
-# *** INICIO
-# ********************************
-echo "============================="
-echo "== Fondo de pantalla APOD  =="
-echo "============================="
-echo "       BY boot1110001        "
-echo "============================="
-echo "  Inspirado en un script de  "
-echo "    Josh Schreuder (2011)    "
+
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# 	START
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+echo " ==========================="
+echo " ==    Wallpaper APOD     =="
+echo " ==========================="
+echo "       by boot1110001       "
+echo " ==========================="
+echo "   Inspired by a script of  "
+echo "    Josh Schreuder (2011)   "
+echo " ==========================="
+echo "  GIT https://goo.gl/yPSXjL "
 echo ""
 
-# Asignar fecha
-TODAY=$(date +'%Y%m%d')
+echo  "The path of the new file to save is: $PICTURES_DIR/"${TODAY}"_apod.jpg"
 
-echo  "La ruta del nuevo archivo a guardar es: $PICTURES_DIR/"${TODAY}"_apod.jpg"
-
-# Si aún no tenemos la imagen hoy
+# If we do not have today's image yet.
 if [ ! -e "$PICTURES_DIR/"${TODAY}"_apod.jpg" ]; then
-    echo "La imagen no esta guradada, guradandola..."
+    echo "The image is not saved, saving it..."
 
     get_page
 
-    # Obtenido el link de la imagen
+    # Getting the link of the image.
     PICURL=`/bin/cat /tmp/pic_url`
 
-    echo  "La URL de la imagen es: ${PICURL}" #<----------------- poner un if para comprobar que es una imagen
+    echo  "The URL of the image is: ${PICURL}" #<----------------- poner un if para comprobar que es una imagen
 
-    echo  "Descargando imagen..."
+    echo  "Downloading image ..."
     wget --quiet $PICURL -O $PICTURES_DIR/${TODAY}_apod.jpg
 
-    echo "Asignando la imagen como fondo de escritorio..."
+    echo "Assigning the image as a desktop background..."
     #~ gconftool-2 -t string -s /desktop/gnome/background/picture_filename $PICTURES_DIR/${TODAY}_apod.jpg
     gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR/${TODAY}_apod.jpg
 
     save_description
     
-    echo "Limpiando la imagen anterior..."
-    # Borrando la imagen anterior (todo lo que no sea la imagen de hoy)
+    echo "Cleaning the previous image..."
+    # Deleting the previous image (everything that is not today's image)
 	rm $PICTURES_DIR/$(ls $PICTURES_DIR | grep -v ${TODAY}_apod.jpg)
 
-# Si ya tenemos la imagen, comprobar que es la copia mas actualizada
 else
+# If we already have the image, check that it is the most updated copy.
+
     get_page
 
-    # Obtenido el link de la imagen
+    # Getting the link of the image.
     PICURL=`/bin/cat /tmp/pic_url`
 
-    echo  "La URL de la imagen es: ${PICURL}"
+    echo  "The URL of the image is: ${PICURL}"
 
-    # Obteniendo el filesize (tamaño de la imagen)
+    # Getting the filesize (image size).
     SITEFILESIZE=$(wget --spider $PICURL 2>&1 | grep $LENGTH | awk '{print $2}')
     FILEFILESIZE=$(stat -c %s $PICTURES_DIR/${TODAY}_apod.jpg)
 
-    # Si la imagen ha sido actualizada
-    echo "¿" "$SITEFILESIZE" "!=" "$FILEFILESIZE" "?"
+    # If the image has not been updated (the sizes don't match).
+    echo "Do the sizes of the web image and the downloaded image match?"
+    echo " ¿" "$SITEFILESIZE" "==" "$FILEFILESIZE" "?"
     if [ "$SITEFILESIZE" != "$FILEFILESIZE" ]; then
-        echo "La imagen ha sido actualizada, obteniendo la copia actualizada..."
+        echo "The image has not been updated (the sizes don't match), obtaining the updated copy..."
         rm $PICTURES_DIR/${TODAY}_apod.jpg
 
-        # Obtenido el link de la imagen
+        # Getting the link of the image.
         PICURL=`/bin/cat /tmp/pic_url`
 
-        echo  "Descargando la imagen..."
+        echo  "Downloading image ..."
         wget --quiet $PICURL -O $PICTURES_DIR/${TODAY}_apod.jpg
 
-        echo "Asignando la imagen como fondo de escritorio..."
+        echo "Assigning the image as a desktop background..."
         #gconftool-2 -t string -s /desktop/gnome/background/picture_filename $PICTURES_DIR/${TODAY}_apod.jpg
         gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR/${TODAY}_apod.jpg
 
         save_description
 
-    # Si la imagen es la misma
     else
-        echo "La imagen es la misma, acabado."
+    # If the image has been updated (the sizes match).
+        echo "The image has already been updated (the sizes match), finishing."
     fi
 fi
 
