@@ -86,6 +86,7 @@ function check {
     echo "Checking if the downloaded image is correct..."
 	if [ ! -f "$PICTURES_DIR/"${TODAY}"_apod.jpg" ]; then
 		echo "The image has not been downloaded, replacing it with the default image..."
+		echo "Default image: $DEFAULT_IMG"
 		gsettings set org.gnome.desktop.background picture-uri "file://$DEFAULT_IMG"
 		notify-send -i "$ICON" "Fallo en la descarga del fondo de pantalla APOD" "La imagen de hoy de la 'Astronomy Picture of the Day' no se ha podido descargar. Asignado el fondo por defecto."
 		#~ notify-send -i "$ICON" "Failure to download the APOD wallpaper" "Today's image of the 'Astronomy Picture of the Day' could not be downloaded. Assigned the background by default."
@@ -109,70 +110,91 @@ echo " ==========================="
 echo "  GIT https://goo.gl/yPSXjL "
 echo ""
 
-echo  "The path of the new file to save is: $PICTURES_DIR/"${TODAY}"_apod.jpg"
+echo "The path of the new file to save is: $PICTURES_DIR/"${TODAY}"_apod.jpg"
 
-# If we do not have today's image yet.
-if [ ! -e "$PICTURES_DIR/"${TODAY}"_apod.jpg" ]; then
-    echo "The image is not saved, saving it..."
+get_page
 
-    get_page
+# Getting the link of the image.
+PICURL=`/bin/cat /tmp/pic_url`
 
-    # Getting the link of the image.
-    PICURL=`/bin/cat /tmp/pic_url`
+#~ For tests.
+#~ PICURL="http://apod.nasa.gov/apod/image/1812/RocketLaunch_Jiang_960.jpg" # Good
+#~ PICURL="http://apod.nasa.gov/apod/image/1812/RocketLaunch_Jiang_960.jpg" # Bad
 
-    echo  "The URL of the image is: ${PICURL}" #<----------------- poner un if para comprobar que es una imagen
+echo "The URL of the image is: ${PICURL}"
 
-    echo  "Downloading image ..."
-    wget --quiet $PICURL -O $PICTURES_DIR/${TODAY}_apod.jpg
+echo "Is the image URL really an image?"
+if [[ "$PICURL" =~ ^(http:\/\/apod.nasa.gov\/.*)(\.jpg|\.png)$ ]]; 
+	then
+		echo "Yes! It's an image."
+		
+		# If we do not have today's image yet.
+		if [ ! -e "$PICTURES_DIR/"${TODAY}"_apod.jpg" ]; then
+			echo "The image is not saved, saving it..."
+			
+			#~ echo "The URL of the image is: ${PICURL}"
 
-    echo "Assigning the image as a desktop background..."
-    #~ gconftool-2 -t string -s /desktop/gnome/background/picture_filename $PICTURES_DIR/${TODAY}_apod.jpg
-    gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR/${TODAY}_apod.jpg
+			echo "Downloading image ..."
+			wget --quiet $PICURL -O $PICTURES_DIR/${TODAY}_apod.jpg
 
-    save_description
-    
-    echo "Cleaning the previous image..."
-    # Deleting the previous image (everything that is not today's image)
-	rm $PICTURES_DIR/$(ls $PICTURES_DIR | grep -v ${TODAY}_apod.jpg)
+			echo "Assigning the image as a desktop background..."
+			gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR/${TODAY}_apod.jpg
 
-else
-# If we already have the image, check that it is the most updated copy.
+			save_description
+			
+			echo "Cleaning the previous image..."
+			# Deleting the previous image (everything that is not today's image)
+			rm $PICTURES_DIR/$(ls $PICTURES_DIR | grep -v ${TODAY}_apod.jpg)
 
-    get_page
+		else
+		# If we already have the image, check that it is the most updated copy.
 
-    # Getting the link of the image.
-    PICURL=`/bin/cat /tmp/pic_url`
+			echo "We already have an image, checking that it is the most updated copy..."
+			#~ echo "The URL of the image is: ${PICURL}"
 
-    echo  "The URL of the image is: ${PICURL}"
+			# Getting the filesize (image size).
+			SITEFILESIZE=$(wget --spider $PICURL 2>&1 | grep $LENGTH | awk '{print $2}')
+			FILEFILESIZE=$(stat -c %s $PICTURES_DIR/${TODAY}_apod.jpg)
 
-    # Getting the filesize (image size).
-    SITEFILESIZE=$(wget --spider $PICURL 2>&1 | grep $LENGTH | awk '{print $2}')
-    FILEFILESIZE=$(stat -c %s $PICTURES_DIR/${TODAY}_apod.jpg)
+			# If the image has not been updated (the sizes don't match).
+			echo "Do the sizes of the web image and the downloaded image match?"
+			echo " ¿" "$SITEFILESIZE" "==" "$FILEFILESIZE" "?"
+			if [ "$SITEFILESIZE" != "$FILEFILESIZE" ]; then
+				echo "The image has not been updated (the sizes don't match), obtaining the updated copy..."
+				rm $PICTURES_DIR/${TODAY}_apod.jpg
 
-    # If the image has not been updated (the sizes don't match).
-    echo "Do the sizes of the web image and the downloaded image match?"
-    echo " ¿" "$SITEFILESIZE" "==" "$FILEFILESIZE" "?"
-    if [ "$SITEFILESIZE" != "$FILEFILESIZE" ]; then
-        echo "The image has not been updated (the sizes don't match), obtaining the updated copy..."
-        rm $PICTURES_DIR/${TODAY}_apod.jpg
+				# Getting the link of the image.
+				#~ PICURL=`/bin/cat /tmp/pic_url`
+				#~ echo "The URL of the image is: ${PICURL}"
 
-        # Getting the link of the image.
-        PICURL=`/bin/cat /tmp/pic_url`
+				echo "Downloading image ..."
+				wget --quiet $PICURL -O $PICTURES_DIR/${TODAY}_apod.jpg
 
-        echo  "Downloading image ..."
-        wget --quiet $PICURL -O $PICTURES_DIR/${TODAY}_apod.jpg
+				echo "Assigning the image as a desktop background..."
+				gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR/${TODAY}_apod.jpg
+				
+				save_description
 
-        echo "Assigning the image as a desktop background..."
-        #gconftool-2 -t string -s /desktop/gnome/background/picture_filename $PICTURES_DIR/${TODAY}_apod.jpg
-        gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR/${TODAY}_apod.jpg
-
-        save_description
-
-    else
-    # If the image has been updated (the sizes match).
-        echo "The image has already been updated (the sizes match), finishing."
-    fi
+			else
+			# If the image has been updated (the sizes match).
+				echo "The image has already been updated (the sizes match), finishing."
+				
+				echo "Reassigning the image as a desktop background..." # NECESARY
+				gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR/${TODAY}_apod.jpg
+			fi
+		fi
+		
+	else 
+		echo "No, it's not an image (the URL does not have a correct format) :(" 
+		echo "The URL is not a downloadable image, replacing it with the default image..."
+		echo "Default image: $DEFAULT_IMG"
+		gsettings set org.gnome.desktop.background picture-uri "file://$DEFAULT_IMG"
+		notify-send -i "$ICON" "Fallo en la descarga del fondo de pantalla APOD" "La imagen de hoy de la 'Astronomy Picture of the Day' no se ha podido descargar. Asignado el fondo por defecto."
+		clean_up
+		exit
 fi
+
+
 
 clean_up
 check
