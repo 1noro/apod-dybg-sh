@@ -1,6 +1,7 @@
 #!/bin/bash
-VERSION="20180912a"
-# (c) boot1110001 [20180912a]
+# Package required to improve the experience (notify-osd)
+VERSION="20181205a"
+# (c) boot1110001 [20181205a]
 echo "# (c) boot1110001 [$VERSION]"
 # [install-or-update - Install or Update apod-dybg*]
 echo "# [install-or-update - Install or Update apod-dybg*]"
@@ -20,6 +21,8 @@ mkdir -p ~/.apod-dybg/bg-default
 echo "+ $HOME/.apod-dybg/bg-default"
 mkdir -p ~/.apod-dybg/bg-picture
 echo "+ $HOME/.apod-dybg/bg-picture"
+mkdir -p ~/.apod-dybg/bg-picture2
+echo "+ $HOME/.apod-dybg/bg-picture2"
 mkdir -p ~/.apod-dybg/bg-description
 echo "+ $HOME/.apod-dybg/bg-description"
 # Creating the folder for the .desktop file (if it does not already exist)
