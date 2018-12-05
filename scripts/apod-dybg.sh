@@ -198,13 +198,6 @@ if [[ "$PICURL" =~ ^(http:\/\/apod.nasa.gov\/.*)(\.jpg|\.png)$ ]]; then
 		if [ "$SITEFILESIZE" != "$FILEFILESIZE" ]; then
 			echo "The image has not been updated (the sizes don't match), obtaining the updated copy..."
 			rm $PICTURES_DIR/${TODAY}_apod.jpg
-			#~ echo "Downloading image ..."
-			#~ wget --quiet $PICURL -O $PICTURES_DIR/${TODAY}_apod.jpg
-
-			#~ echo "Assigning the image as a desktop background..."
-			#~ gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR/${TODAY}_apod.jpg
-			
-			#~ save_description
 			image_as_bg
 		else
 		# If the image has been updated (the sizes match).
@@ -220,10 +213,11 @@ if [[ "$PICURL" =~ ^(http:\/\/apod.nasa.gov\/.*)(\.jpg|\.png)$ ]]; then
 	
 else 
 	echo "No, it's not an image (the URL does not have a correct format) :(" 
-	echo "The URL is not a downloadable image, replacing it with the default image..."
-	echo "Default image: $DEFAULT_IMG"
-	
-	gsettings set org.gnome.desktop.background picture-uri "file://$DEFAULT_IMG"
+	echo "The URL is not a downloadable image, replacing it with the image2..."
+	image2_as_bg
+	#~ echo "The URL is not a downloadable image, replacing it with the default image..."
+	#~ echo "Default image: $DEFAULT_IMG"
+	#~ gsettings set org.gnome.desktop.background picture-uri "file://$DEFAULT_IMG"
 	notify-send -i "$ICON" "Fallo en la descarga del fondo de pantalla APOD" "La imagen de hoy de la 'Astronomy Picture of the Day' no se ha podido descargar. Asignado el fondo por defecto."
 	clean_up
 fi
