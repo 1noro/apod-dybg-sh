@@ -1,5 +1,5 @@
 #!/bin/bash
-# VERSION: 20181205a
+# VERSION: 20181206a
 # By boot1110001. Based on the script of Josh Schreuder (2011)
 
 

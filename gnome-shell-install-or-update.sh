@@ -1,7 +1,7 @@
 #!/bin/bash
 # Package required to improve the experience (notify-osd)
-VERSION="20181205a"
-# (c) boot1110001 [20181205a]
+VERSION="20181206a"
+# (c) boot1110001
 echo "# (c) boot1110001 [$VERSION]"
 # [install-or-update - Install or Update apod-dybg*]
 echo "# [install-or-update - Install or Update apod-dybg*]"
