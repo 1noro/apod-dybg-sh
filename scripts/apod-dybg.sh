@@ -24,8 +24,8 @@ DESCRIPTION_DIR="$HOME/.apod-dybg/bg-description"
 
 # Enter 'Length' in the language of your PC bash shell.
 #~ LENGTH="Length"
-LENGTH="Longitud"
-#~ LENGTH="Lonxitude"
+#~ LENGTH="Longitud"
+LENGTH="Lonxitude"
 
 # Address of the default image.
 #~ DEFAULT_IMG="$HOME/.apod-dybg/bg-default/bg-default-"$(( ( RANDOM % 3 )  + 1 ))".jpg"
@@ -37,6 +37,11 @@ ICON="$HOME/.icons/apod-dybg.png"
 
 # Assigning date.
 TODAY=$(date +'%Y%m%d')
+
+# Use 'http://www.aapodx2.com' instead of the default image? Any other 
+# option will be taken as a denial.
+#~ USE_IMAGE2="yes"
+USE_IMAGE2="yes"
 
 
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -61,37 +66,10 @@ function get_page {
     grep -m 1 jpg /tmp/apod.html | sed -e 's/<//' -e 's/>//' -e 's/.*=//' -e 's/"//g' -e 's/^/http:\/\/apod.nasa.gov\/apod\//' > /tmp/pic_url
 }
 
-function image_as_bg {
-	echo "Downloading image ..."
-	wget --quiet $PICURL -O $PICTURES_DIR/${TODAY}_apod.jpg
-
-	echo "Assigning the image as a desktop background..."
-	gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR/${TODAY}_apod.jpg
-
-	save_description
-}
-
 function get_page2 {
-    echo "Downloading the page 2 to find the image..."
+    echo "Downloading the page 2 to find the image2..."
     wget http://www.aapodx2.com/ --quiet -O /tmp/apod.html
     grep -m 2 jpg /tmp/apod.html | sed -n '1!p' | sed -e 's/.*href="//' -e 's/><img.*//' -e 's/"//g' -e 's/^/http:\/\/www.aapodx2.com/' > /tmp/pic_url2
-}
-
-function image2_as_bg {
-	get_page2
-	
-	# Getting the link of the image2.
-	PICURL2=`/bin/cat /tmp/pic_url2`
-	
-	echo "Downloading image2..."
-	wget --quiet $PICURL2 -O $PICTURES_DIR2/${TODAY}_apod2.jpg
-
-	echo "Assigning the image2 as a desktop background..."
-	gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR2/${TODAY}_apod2.jpg
-	
-	echo "Cleaning the previous image2..."
-	# Deleting the previous image2 (everything that is not today's image2)
-	rm $PICTURES_DIR2/$(ls $PICTURES_DIR2 | grep -v ${TODAY}_apod2.jpg)
 }
 
 function save_description {
@@ -118,6 +96,48 @@ function save_description {
     fi
 }
 
+function image_as_bg {
+	echo "Downloading image ..."
+	wget --quiet $PICURL -O $PICTURES_DIR/${TODAY}_apod.jpg
+
+	echo "Assigning the image as a desktop background..."
+	gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR/${TODAY}_apod.jpg
+
+	save_description
+}
+
+function image2_as_bg {
+	get_page2
+	
+	# Getting the link of the image2.
+	PICURL2=`/bin/cat /tmp/pic_url2`
+	
+	echo "Downloading image2..."
+	wget --quiet $PICURL2 -O $PICTURES_DIR2/${TODAY}_apod2.jpg
+
+	echo "Assigning the image2 as a desktop background..."
+	gsettings set org.gnome.desktop.background picture-uri "file://"$PICTURES_DIR2/${TODAY}_apod2.jpg
+	
+	echo "Cleaning the previous image2..."
+	# Deleting the previous image2 (everything that is not today's image2)
+	rm $PICTURES_DIR2/$(ls $PICTURES_DIR2 | grep -v ${TODAY}_apod2.jpg)
+}
+
+function use_default_image {
+	echo "Default image: $DEFAULT_IMG"
+	gsettings set org.gnome.desktop.background picture-uri "file://$DEFAULT_IMG"
+}
+
+function switch_img2_or_def_img {
+	if [ "$USE_IMAGE2" == "yes" ]; then
+		echo "Replacing it with the image2..."
+		image2_as_bg
+	else
+		echo "Replacing it with the default image..."
+		use_default_image
+	fi
+}
+
 function clean_up {
     # Clean.
     echo "Cleaning temporary files:"
@@ -140,15 +160,19 @@ function clean_up {
 function check {
     # Check if the image has been downloaded.
     echo "Checking if the downloaded image is correct..."
-	if [ ! -f "$PICTURES_DIR/"${TODAY}"_apod.jpg" ]; then
-		echo "The image has not been downloaded, replacing it with the default image..."
-		echo "Default image: $DEFAULT_IMG"
-		
-		gsettings set org.gnome.desktop.background picture-uri "file://$DEFAULT_IMG"
+	if [ ! -f ${PICTURES_DIR}"/"${TODAY}"_apod.jpg" ]; then
+		echo "The image has not been downloaded"
+		switch_img2_or_def_img
 		notify-send -i "$ICON" "Fallo en la descarga del fondo de pantalla APOD" "La imagen de hoy de la 'Astronomy Picture of the Day' no se ha podido descargar. Asignado el fondo por defecto."
 		#~ notify-send -i "$ICON" "Failure to download the APOD wallpaper" "Today's image of the 'Astronomy Picture of the Day' could not be downloaded. Assigned the background by default."
 	else
-		echo "The image has been downloaded correctly, ending..."
+		if [ -s ${PICTURES_DIR}"/"${TODAY}"_apod.jpg" ]; then   
+				echo "The image has been downloaded correctly"
+		else
+				echo "The image has an error"
+				switch_img2_or_def_img
+				notify-send -i "$ICON" "Fallo en la descarga del fondo de pantalla APOD" "La imagen de hoy de la 'Astronomy Picture of the Day' no se ha podido descargar. Asignado el fondo por defecto."
+		fi
 	fi
 }
 
@@ -167,7 +191,8 @@ PICURL=`/bin/cat /tmp/pic_url`
 
 #~ For tests.
 #~ PICURL="http://apod.nasa.gov/apod/image/1812/RocketLaunch_Jiang_960.jpg" # Good
-PICURL="http://apod.nasa.gov/apod/image/1812/RocketLaunch_Jiang_960.jpgg" # Bad
+#~ PICURL="http://apod.nasa.gov/apod/image/1812/RocketLaunch_Jiang_9602.jpg" # 404 URL
+#~ PICURL="http://apod.nasa.gov/apod/image/1812/RocketLaunch_Jiang_960.jpgg" # Bad URL
 
 echo "The URL of the image is: ${PICURL}"
 
@@ -176,7 +201,7 @@ if [[ "$PICURL" =~ ^(http:\/\/apod.nasa.gov\/.*)(\.jpg|\.png)$ ]]; then
 	echo "Yes! It's an image."
 	
 	# If we do not have today's image yet.
-	if [ ! -e "$PICTURES_DIR/"${TODAY}"_apod.jpg" ]; then
+	if [ ! -e ${PICTURES_DIR}"/"${TODAY}"_apod.jpg" ]; then
 		echo "The image is not saved, saving it..."
 		image_as_bg
 		echo "Cleaning the previous image..."
@@ -208,19 +233,15 @@ if [[ "$PICURL" =~ ^(http:\/\/apod.nasa.gov\/.*)(\.jpg|\.png)$ ]]; then
 		fi
 	fi
 	
-	clean_up
 	check
 	
 else 
 	echo "No, it's not an image (the URL does not have a correct format) :(" 
-	echo "The URL is not a downloadable image, replacing it with the image2..."
-	image2_as_bg
-	#~ echo "The URL is not a downloadable image, replacing it with the default image..."
-	#~ echo "Default image: $DEFAULT_IMG"
-	#~ gsettings set org.gnome.desktop.background picture-uri "file://$DEFAULT_IMG"
+	echo "The URL is not a downloadable image"
+	switch_img2_or_def_img
 	notify-send -i "$ICON" "Fallo en la descarga del fondo de pantalla APOD" "La imagen de hoy de la 'Astronomy Picture of the Day' no se ha podido descargar. Asignado el fondo por defecto."
-	clean_up
 fi
 
+clean_up
 echo "Ending..."
 exit
